@@ -1,6 +1,5 @@
 import anthropic
-from google import genai
-from google.genai import types
+from groq import Groq
 from prompt_template import SYSTEM_PROMPT, build_user_prompt
 
 
@@ -22,20 +21,20 @@ def generate_with_claude(api_key: str, spl_query: str, description: str, log_sou
     return message.content[0].text
 
 
-def generate_with_gemini(api_key: str, spl_query: str, description: str, log_sources: list, severity: str) -> str:
-    """Generate IR plan using Google Gemini API (new SDK)."""
-    client = genai.Client(api_key=api_key)
+def generate_with_groq(api_key: str, spl_query: str, description: str, log_sources: list, severity: str, model: str = "llama-3.3-70b-versatile") -> str:
+    """Generate IR plan using Groq API (free tier)."""
+    client = Groq(api_key=api_key)
     
     user_prompt = build_user_prompt(spl_query, description, log_sources, severity)
     
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=user_prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
-            max_output_tokens=8000,
-            temperature=0.3,
-        )
+    chat_completion = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt}
+        ],
+        temperature=0.3,
+        max_tokens=8000,
     )
     
-    return response.text
+    return chat_completion.choices[0].message.content
