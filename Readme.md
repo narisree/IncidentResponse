@@ -10,7 +10,7 @@ An AI-powered tool that generates detailed, actionable incident response plans t
 - **TP/FP determination criteria** — Decision-tree style guidance for analysts
 - **Team-specific recommendations** — Detailed, actionable escalation steps organized by team (EDR, IAM, Network, Service Desk)
 - **Download as DOCX** — Export the plan as a formatted Word document
-- **Dual AI model support** — Choose between Claude (premium quality) or Gemini 2.0 Flash (free)
+- **Dual AI model support** — Choose between Claude (premium quality) or Groq running Llama 3.3 70B / DeepSeek R1 (free)
 
 ## Setup
 
@@ -26,9 +26,10 @@ pip install -r requirements.txt
 - Go to [console.anthropic.com](https://console.anthropic.com/)
 - Create an API key
 
-**Gemini (Free):**
-- Go to [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
-- Generate an API key (free tier available)
+**Groq (Free):**
+- Go to [console.groq.com](https://console.groq.com/)
+- Generate an API key (no credit card required)
+- Free tier: 1,000 requests/day
 
 ### 3. Run the app
 
