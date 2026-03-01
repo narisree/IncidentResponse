@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from ai_models import generate_with_claude, generate_with_gemini
+from ai_models import generate_with_claude, generate_with_groq
 from docx_generator import markdown_to_docx
 
 # --- Page Config ---
@@ -127,16 +127,16 @@ with st.sidebar:
     
     model_choice = st.selectbox(
         "AI Model",
-        ["Claude (Anthropic)", "Gemini 2.0 Flash (Google - Free)"],
-        help="Claude produces higher quality output. Gemini is free."
+        ["Claude (Anthropic)", "Groq - Llama 3.3 70B (Free)", "Groq - DeepSeek R1 (Free)"],
+        help="Claude produces highest quality. Groq models are free with generous limits."
     )
     
     if model_choice == "Claude (Anthropic)":
         api_key = st.text_input("Anthropic API Key", type="password", placeholder="sk-ant-...")
         st.caption("Get your key at [console.anthropic.com](https://console.anthropic.com/)")
     else:
-        api_key = st.text_input("Google AI API Key", type="password", placeholder="AI...")
-        st.caption("Get your free key at [aistudio.google.com](https://aistudio.google.com/apikey)")
+        api_key = st.text_input("Groq API Key", type="password", placeholder="gsk_...")
+        st.caption("Get your free key at [console.groq.com](https://console.groq.com/) — no credit card required")
     
     st.divider()
     
@@ -279,8 +279,10 @@ if generate_clicked and can_generate:
             
             if model_choice == "Claude (Anthropic)":
                 result = generate_with_claude(api_key, spl_query, description, log_sources, severity)
+            elif model_choice == "Groq - Llama 3.3 70B (Free)":
+                result = generate_with_groq(api_key, spl_query, description, log_sources, severity, model="llama-3.3-70b-versatile")
             else:
-                result = generate_with_gemini(api_key, spl_query, description, log_sources, severity)
+                result = generate_with_groq(api_key, spl_query, description, log_sources, severity, model="deepseek-r1-distill-llama-70b")
             
             elapsed = time.time() - start_time
             
