@@ -133,6 +133,25 @@ def get_secret(key: str) -> str:
 preconfigured_anthropic_key = get_secret("ANTHROPIC_API_KEY")
 preconfigured_groq_key = get_secret("GROQ_API_KEY")
 
+# --- Model options with current valid Groq model IDs ---
+# Maps display label → Groq API model string
+GROQ_MODEL_IDS = {
+    "Groq - Llama 3.3 70B (Free)": "llama-3.3-70b-versatile",
+    "Groq - DeepSeek R1 Distill Qwen 32B (Free)": "deepseek-r1-distill-qwen-32b",
+    "Groq - Qwen 2.5 32B (Free)": "qwen-2.5-32b",
+    "Groq - Kimi K2 by Moonshot AI (Free)": "moonshotai/kimi-k2-instruct",
+}
+
+MODEL_OPTIONS = ["Claude (Anthropic)"] + list(GROQ_MODEL_IDS.keys())
+
+MODEL_DESCRIPTIONS = {
+    "Claude (Anthropic)": None,  # no callout needed
+    "Groq - Llama 3.3 70B (Free)": "🦙 **Llama 3.3 70B** — Meta open-source. Most reliable and battle-tested on Groq. Groq's own recommended replacement for the decommissioned DeepSeek R1 Llama 70B.",
+    "Groq - DeepSeek R1 Distill Qwen 32B (Free)": "🔬 **DeepSeek R1 Qwen 32B** — Reasoning model (chain-of-thought) distilled from DeepSeek R1 into the Qwen 32B architecture. Best for structured, multi-section document generation like IR plans. Direct successor to the decommissioned model.",
+    "Groq - Qwen 2.5 32B (Free)": "🤖 **Qwen 2.5 32B** — Alibaba open-source, 128k context. Fast instruction-following, great general-purpose alternative.",
+    "Groq - Kimi K2 by Moonshot AI (Free)": "🌙 **Kimi K2** — Moonshot AI (Chinese). Strong at long-context and agentic reasoning tasks.",
+}
+
 
 # --- Sidebar: Configuration ---
 with st.sidebar:
@@ -140,13 +159,14 @@ with st.sidebar:
     
     model_choice = st.selectbox(
         "AI Model",
-        ["Claude (Anthropic)", "Groq - Llama 3.3 70B (Free)", "Groq - DeepSeek R1 (Free)"],
-        help="Claude produces highest quality. Groq models are free with generous limits."
+        MODEL_OPTIONS,
+        help="Claude produces highest quality. Groq models are free with generous rate limits."
     )
     
-    if model_choice == "Claude (Anthropic)":
+    is_groq = model_choice != "Claude (Anthropic)"
+    
+    if not is_groq:
         if preconfigured_anthropic_key:
-            # Key is pre-loaded from secrets — show a locked indicator, no input needed
             st.success("✅ Anthropic API key loaded from environment")
             api_key = preconfigured_anthropic_key
         else:
@@ -166,8 +186,13 @@ with st.sidebar:
                 type="password",
                 placeholder="gsk_..."
             )
-            st.caption("Get your free key at [console.groq.com](https://console.groq.com/) — no credit card required")
-    
+            st.caption("Free key at [console.groq.com](https://console.groq.com/) — no credit card required")
+
+    # Show model info callout
+    model_desc = MODEL_DESCRIPTIONS.get(model_choice)
+    if model_desc:
+        st.info(model_desc)
+
     st.divider()
     
     st.markdown("### 📋 About")
@@ -309,10 +334,12 @@ if generate_clicked and can_generate:
             
             if model_choice == "Claude (Anthropic)":
                 result = generate_with_claude(api_key, spl_query, description, log_sources, severity)
-            elif model_choice == "Groq - Llama 3.3 70B (Free)":
-                result = generate_with_groq(api_key, spl_query, description, log_sources, severity, model="llama-3.3-70b-versatile")
             else:
-                result = generate_with_groq(api_key, spl_query, description, log_sources, severity, model="deepseek-r1-distill-llama-70b")
+                groq_model_id = GROQ_MODEL_IDS[model_choice]
+                result = generate_with_groq(
+                    api_key, spl_query, description, log_sources, severity,
+                    model=groq_model_id
+                )
             
             elapsed = time.time() - start_time
             
