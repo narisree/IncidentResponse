@@ -121,6 +121,19 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+# --- Secret Key Loader ---
+def get_secret(key: str) -> str:
+    """Safely read a key from st.secrets, return empty string if not found."""
+    try:
+        return st.secrets.get(key, "")
+    except Exception:
+        return ""
+
+# Load pre-configured keys from Streamlit Cloud secrets (if set)
+preconfigured_anthropic_key = get_secret("ANTHROPIC_API_KEY")
+preconfigured_groq_key = get_secret("GROQ_API_KEY")
+
+
 # --- Sidebar: Configuration ---
 with st.sidebar:
     st.markdown("### ⚙️ Configuration")
@@ -132,11 +145,28 @@ with st.sidebar:
     )
     
     if model_choice == "Claude (Anthropic)":
-        api_key = st.text_input("Anthropic API Key", type="password", placeholder="sk-ant-...")
-        st.caption("Get your key at [console.anthropic.com](https://console.anthropic.com/)")
+        if preconfigured_anthropic_key:
+            # Key is pre-loaded from secrets — show a locked indicator, no input needed
+            st.success("✅ Anthropic API key loaded from environment")
+            api_key = preconfigured_anthropic_key
+        else:
+            api_key = st.text_input(
+                "Anthropic API Key",
+                type="password",
+                placeholder="sk-ant-..."
+            )
+            st.caption("Get your key at [console.anthropic.com](https://console.anthropic.com/)")
     else:
-        api_key = st.text_input("Groq API Key", type="password", placeholder="gsk_...")
-        st.caption("Get your free key at [console.groq.com](https://console.groq.com/) — no credit card required")
+        if preconfigured_groq_key:
+            st.success("✅ Groq API key loaded from environment")
+            api_key = preconfigured_groq_key
+        else:
+            api_key = st.text_input(
+                "Groq API Key",
+                type="password",
+                placeholder="gsk_..."
+            )
+            st.caption("Get your free key at [console.groq.com](https://console.groq.com/) — no credit card required")
     
     st.divider()
     
